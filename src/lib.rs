@@ -3,10 +3,10 @@ extern crate alloc;
 
 mod erc20;
 
-use crate::erc20::{ERC20, ERC20Params};
-use alloc::{vec::Vec};
+use crate::erc20::{ERC20Params, ERC20};
+use alloc::vec::Vec;
+use alloy_primitives::B256;
 use stylus_sdk::{alloy_primitives::U256, msg, prelude::*};
-use alloy_primitives::{B256};
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;

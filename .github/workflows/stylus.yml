@@ -13,17 +13,31 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: nightly
-          targets: wasm32-unknown-unknown
+          components: rust-src
+          target: wasm32-unknown-unknown
         id: rust
+
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
       - name: Install Stylus CLI
         run: |
-          RUSTFLAGS="-C link-args=-rdynamic" cargo install --force cargo-stylus
-          rustup component add rust-src --toolchain nightly
+          cargo install --locked cargo-stylus || true
         id: stylus
 
       - name: Check project is valid
