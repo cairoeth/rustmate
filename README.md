@@ -1,66 +1,56 @@
-## Foundry
+# 🦀 rustmate
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-Foundry consists of:
+**Blazing fast**, **modern**, **opinionated**, and **extremely optimized** Rust building blocks for smart contract development. 
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+> This is **experimental software** and is provided on an "as is" and "as available" basis. We **do not give any warranties** and **will not be liable for any losses** incurred through any use of this code base.
 
-## Documentation
+## 📜 Contracts
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```ml
+src
+├─ ERC20 — "Modern and Gas-Efficient ERC-20 + EIP-2612 Implementation"
 ```
 
-### Test
+## 🎛 Installation
 
-```shell
-$ forge test
+Install [Rust](https://www.rust-lang.org/tools/install), and then install the Stylus CLI tool with Cargo
+
+```bash
+RUSTFLAGS="-C link-args=-rdynamic" cargo install --force cargo-stylus
 ```
 
-### Format
+Add the `wasm32-unknown-unknown` build target to your Rust compiler:
 
-```shell
-$ forge fmt
+```
+rustup target add wasm32-unknown-unknown
 ```
 
-### Gas Snapshots
+Then, clone the repository:
 
-```shell
-$ forge snapshot
+```
+git clone https://github.com/cairoeth/rustmate && cd rustmate
 ```
 
-### Anvil
+## 🔧 How to use
 
-```shell
-$ anvil
-```
+To be implemented.
 
-### Deploy
+## ✅ Tests
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+To be implemented.
 
-### Cast
+## 🙏🏼 Acknowledgements
 
-```shell
-$ cast <subcommand>
-```
+This repository is inspired by or directly modified from many sources, primarily:
 
-### Help
+- [solmate](https://github.com/transmissions11/solmate)
+- [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
+- [snekmate](https://github.com/pcaversaccio/snekmate)
+- [stylus-sdk-rs](https://github.com/OffchainLabs/stylus-sdk-rs)
+- [stylus-hello-world](https://github.com/OffchainLabs/stylus-hello-world)
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## 🫡 Contributing
+
+Check out the [Contribution Guidelines](./CONTRIBUTING.md)!

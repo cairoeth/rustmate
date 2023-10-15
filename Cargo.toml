@@ -1,0 +1,28 @@
+[package]
+name = "rustmate"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+homepage = "https://github.com/cairoeth/rustmate"
+repository = "https://github.com/cairoeth/rustmate"
+keywords = ["arbitrum", "ethereum", "stylus", "alloy", "rust", "rustmate"]
+description = "Blazing fast, modern, opinionated, and extremely optimized Rust building blocks for smart contract development."
+
+[dependencies]
+alloy-primitives = "0.3.1"
+alloy-sol-types = "0.3.1"
+stylus-sdk = "0.4.1"
+wee_alloc = "0.4.5"
+
+[features]
+export-abi = ["stylus-sdk/export-abi"]
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"
