@@ -1,5 +1,6 @@
 # 🦀 rustmate
 
+[![Check smart contracts](https://github.com/cairoeth/rustmate/actions/workflows/stylus.yml/badge.svg)](https://github.com/cairoeth/rustmate/actions/workflows/stylus.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 **Blazing fast**, **modern**, **opinionated**, and **extremely optimized** Rust building blocks for smart contract development. 
