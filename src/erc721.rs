@@ -19,7 +19,7 @@ pub trait ERC721Params {
 
     const SYMBOL: &'static str;
 
-    fn token_uri(token_id: U256) -> String;
+    fn token_uri(id: U256) -> String;
 }
 
 sol_storage! {
@@ -327,6 +327,6 @@ impl<T: ERC721Params> ERC721<T> {
 
 sol_interface! {
     interface IERC721TokenReceiver {
-        function onERC721Received(address operator, address from, uint256 token_id, bytes data) external returns(bytes4);
+        function onERC721Received(address operator, address from, uint256 id, bytes data) external returns(bytes4);
     }
 }
