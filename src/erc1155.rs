@@ -135,6 +135,102 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         Ok(())
     }
+
+    pub fn mint<S: TopLevelStorage>(
+        &mut self,
+        storage: &mut S,
+        to: Address,
+        id: U256,
+        amount: U256,
+        data: Bytes,
+    ) -> Result<()> {
+        let mut to_balance = self.balance_of.setter(to);
+        let balance = to_balance.get(id) + amount;
+        to_balance.insert(id, balance);
+
+        evm::log(TransferSingle {
+            operator: msg::sender(),
+            from: Address::ZERO,
+            to: to,
+            id: id,
+            amount: amount,
+        });
+
+        Self::call_receiver(storage, id, Address::ZERO, to, amount, data.0)?;
+
+        Ok(())
+    }
+
+    pub fn batch_mint<S: TopLevelStorage>(
+        &mut self,
+        storage: &mut S,
+        to: Address,
+        ids: Vec<U256>,
+        amounts: Vec<U256>,
+        data: Bytes,
+    ) -> Result<()> {
+        if ids.len() != amounts.len() {
+            return Err(ERC1155Error::LengthMismatch(LengthMismatch {}));
+        }
+
+        for i in 0..ids.len() {
+            let id: U256 = ids[i];
+
+            let mut to_balance = self.balance_of.setter(to);
+            let balance = to_balance.get(id) + amounts[i];
+            to_balance.insert(id, balance);
+        }
+
+        evm::log(TransferBatch {
+            operator: msg::sender(),
+            from: Address::ZERO,
+            to: to,
+            ids: ids.clone(),
+            amounts: amounts.clone(),
+        });
+
+        Self::call_receiver_batch(storage, ids, Address::ZERO, to, amounts, data.0)
+    }
+
+    pub fn batch_burn(&mut self, from: Address, ids: Vec<U256>, amounts: Vec<U256>) -> Result<()> {
+        if ids.len() != amounts.len() {
+            return Err(ERC1155Error::LengthMismatch(LengthMismatch {}));
+        }
+
+        for i in 0..ids.len() {
+            let id: U256 = ids[i];
+
+            let mut from_balance = self.balance_of.setter(from);
+            let balance = from_balance.get(id) - amounts[i];
+            from_balance.insert(id, balance);
+        }
+
+        evm::log(TransferBatch {
+            operator: msg::sender(),
+            from: from,
+            to: Address::ZERO,
+            ids: ids,
+            amounts: amounts,
+        });
+
+        Ok(())
+    }
+
+    pub fn burn(&mut self, from: Address, id: U256, amount: U256) -> Result<()> {
+        let mut from_balance = self.balance_of.setter(from);
+        let balance = from_balance.get(id) - amount;
+        from_balance.insert(id, balance);
+
+        evm::log(TransferSingle {
+            operator: msg::sender(),
+            from: from,
+            to: Address::ZERO,
+            id: id,
+            amount: amount,
+        });
+
+        Ok(())
+    }
 }
 
 #[external]
@@ -153,7 +249,9 @@ impl<T: ERC1155Params> ERC1155<T> {
     }
 
     pub fn set_approval_for_all(&mut self, operator: Address, approved: bool) -> Result<()> {
-        self.is_approved_for_all.setter(msg::sender()).insert(operator, approved);
+        self.is_approved_for_all
+            .setter(msg::sender())
+            .insert(operator, approved);
 
         evm::log(ApprovalForAll {
             owner: msg::sender(),
@@ -172,7 +270,13 @@ impl<T: ERC1155Params> ERC1155<T> {
         amount: U256,
         data: Bytes,
     ) -> Result<()> {
-        if msg::sender() != from || !storage.borrow_mut().is_approved_for_all.getter(from).get(msg::sender()) {
+        if msg::sender() != from
+            || !storage
+                .borrow_mut()
+                .is_approved_for_all
+                .getter(from)
+                .get(msg::sender())
+        {
             return Err(ERC1155Error::NotAuthorized(NotAuthorized {}));
         }
 
@@ -207,7 +311,13 @@ impl<T: ERC1155Params> ERC1155<T> {
             return Err(ERC1155Error::LengthMismatch(LengthMismatch {}));
         }
 
-        if msg::sender() != from || !storage.borrow_mut().is_approved_for_all.getter(from).get(msg::sender()) {
+        if msg::sender() != from
+            || !storage
+                .borrow_mut()
+                .is_approved_for_all
+                .getter(from)
+                .get(msg::sender())
+        {
             return Err(ERC1155Error::NotAuthorized(NotAuthorized {}));
         }
 
@@ -249,7 +359,6 @@ impl<T: ERC1155Params> ERC1155<T> {
         Ok(balances)
     }
 
-
     pub fn supports_interface(interface: [u8; 4]) -> Result<bool> {
         let supported = interface == 0x01ffc9a7u32.to_be_bytes() // ERC165 Interface ID for ERC165
             || interface == 0xd9b67a26u32.to_be_bytes() // ERC165 Interface ID for ERC1155
@@ -267,7 +376,7 @@ sol_interface! {
             uint256,
             bytes calldata
         ) external returns (bytes4);
-    
+
         function onERC1155BatchReceived(
             address,
             address,
