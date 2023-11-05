@@ -47,6 +47,7 @@ sol! {
     error WrongFrom();
     error InvalidRecipient();
     error UnsafeRecipient();
+    error AlreadyMinted();
 }
 
 /// Represents the ways methods may fail.
@@ -58,6 +59,7 @@ pub enum ERC721Error {
     InvalidRecipient(InvalidRecipient),
     UnsafeRecipient(UnsafeRecipient),
     CallFailed(stylus_sdk::call::Error),
+    AlreadyMinted(AlreadyMinted),
 }
 
 impl From<stylus_sdk::call::Error> for ERC721Error {
@@ -77,6 +79,7 @@ impl From<ERC721Error> for Vec<u8> {
             ERC721Error::InvalidRecipient(err) => err.encode(),
             ERC721Error::UnsafeRecipient(err) => err.encode(),
             ERC721Error::CallFailed(err) => err.into(),
+            ERC721Error::AlreadyMinted(err) => err.encode(),
         }
     }
 }
@@ -161,7 +164,10 @@ impl<T: ERC721Params> ERC721<T> {
         Ok(self.isApprovedForAll.getter(owner).get(operator))
     }
     
-    // MAKE TOKEN URI PUBLIC
+    #[selector(name = "tokenURI")]
+    pub fn token_uri(&self, token_id: U256) -> Result<String> {
+        Ok(T::token_uri(token_id))
+    }
 
     pub fn approve(&mut self, spender: Address, id: U256) -> Result<()> {
         let owner = self.ownerOf.get(id);
