@@ -8,13 +8,11 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{string::String, vec::Vec};
-use alloy_primitives::{address, Address, B256, U256};
-use alloy_sol_types::{sol, sol_data, SolError, SolType};
+use alloc::{vec::Vec};
+use alloy_primitives::{Address, U256};
+use alloy_sol_types::{sol};
 use core::marker::PhantomData;
-use stylus_sdk::call::RawCall;
-use stylus_sdk::crypto;
-use stylus_sdk::{block, contract, evm, msg, prelude::*};
+use stylus_sdk::{evm, msg, prelude::*};
 
 pub trait ERC6909Params {}
 
@@ -34,28 +32,58 @@ sol! {
     event OperatorSet(address indexed owner, address indexed operator, bool approved);
     event Approval(address indexed owner, address indexed spender, uint256 indexed id, uint256 amount);
     event Transfer(address caller, address indexed from, address indexed to, uint256 indexed id, uint256 amount);
-
-    error PermitDeadlineExpired();
 }
 
 /// Represents the ways methods may fail.
-pub enum ERC6909Error {
-    PermitDeadlineExpired(PermitDeadlineExpired),
-}
+pub enum ERC6909Error {}
 
 /// We will soon provide a `#[derive(SolidityError)]` to clean this up.
 impl From<ERC6909Error> for Vec<u8> {
     fn from(val: ERC6909Error) -> Self {
-        match val {
-            ERC6909Error::PermitDeadlineExpired(err) => err.encode(),
-        }
+        match val {}
     }
 }
 
 /// Simplifies the result type for the contract's methods.
 type Result<T, E = ERC6909Error> = core::result::Result<T, E>;
 
-impl<T: ERC6909Params> ERC6909<T> {}
+impl<T: ERC6909Params> ERC6909<T> {
+    pub fn mint(&mut self, receiver: Address, id: U256, amount: U256) {
+        let mut total_supply = self.total_supply.setter(id);
+        let supply = total_supply.get() + amount;
+        total_supply.set(supply);
+
+        let mut to_balance = self.balance_of.setter(receiver);
+        let balance = to_balance.get(id) + amount;
+        to_balance.insert(id, balance);
+
+        evm::log(Transfer {
+            caller: msg::sender(),
+            from: Address::ZERO,
+            to: receiver,
+            id: id,
+            amount: amount,
+        });
+    }
+
+    pub fn burn(&mut self, sender: Address, id: U256, amount: U256) {
+        let mut from_balance = self.balance_of.setter(sender);
+        let balance = from_balance.get(id) - amount;
+        from_balance.insert(id, balance);
+
+        let mut total_supply = self.total_supply.setter(id);
+        let supply = total_supply.get() - amount;
+        total_supply.set(supply);
+
+        evm::log(Transfer {
+            caller: msg::sender(),
+            from: sender,
+            to: Address::ZERO,
+            id: id,
+            amount: amount,
+        });
+    }
+}
 
 #[external]
 impl<T: ERC6909Params> ERC6909<T> {
@@ -89,7 +117,10 @@ impl<T: ERC6909Params> ERC6909<T> {
         if msg::sender() != sender && !self.is_operator.getter(sender).get(msg::sender()) {
             let allowed = self.allowance.getter(sender).getter(msg::sender()).get(id);
             if allowed != U256::MAX {
-                self.allowance.setter(sender).setter(msg::sender()).insert(id, allowed - amount);
+                self.allowance
+                    .setter(sender)
+                    .setter(msg::sender())
+                    .insert(id, allowed - amount);
             }
         }
 
@@ -113,7 +144,10 @@ impl<T: ERC6909Params> ERC6909<T> {
     }
 
     pub fn approve(&mut self, spender: Address, id: U256, amount: U256) -> Result<bool> {
-        self.allowance.setter(msg::sender()).setter(spender).insert(id, amount);
+        self.allowance
+            .setter(msg::sender())
+            .setter(spender)
+            .insert(id, amount);
 
         evm::log(Approval {
             owner: msg::sender(),
@@ -126,7 +160,9 @@ impl<T: ERC6909Params> ERC6909<T> {
     }
 
     pub fn set_operator(&mut self, operator: Address, approved: bool) -> Result<bool> {
-        self.is_operator.setter(msg::sender()).insert(operator, approved);
+        self.is_operator
+            .setter(msg::sender())
+            .insert(operator, approved);
 
         evm::log(OperatorSet {
             owner: msg::sender(),
