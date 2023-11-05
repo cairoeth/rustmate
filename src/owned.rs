@@ -1,6 +1,6 @@
-//! Provides an implementation of an Owner contract.
+//! Provides an implementation of an Owned contract.
 //!
-//! The eponymous [`Owner`] type provides all the standard methods,
+//! The eponymous [`Owned`] type provides all the standard methods,
 //! and is intended to be inherited by other contract types.
 //!
 //! Note that this code is unaudited and not fit for production use.
@@ -11,11 +11,10 @@ use alloy_sol_types::{sol, SolError};
 use core::{marker::PhantomData};
 use stylus_sdk::{evm, msg, prelude::*};
 
-pub trait OwnerParams {}
+pub trait OwnedParams {}
 
 sol_storage! {
-    /// Owner implements all ERC-6909 methods
-    pub struct Owner<T: OwnerParams> {
+    pub struct Owned<T: OwnedParams> {
         address owner;
         bool initialized;
         PhantomData<T> phantom;
@@ -32,30 +31,30 @@ sol! {
 }
 
 /// Represents the ways methods may fail.
-pub enum OwnerError {
+pub enum OwnedError {
     Unauthorized(Unauthorized),
     AlreadyInitialized(AlreadyInitialized),
     InvalidInitialize(InvalidInitialize),
 }
 
 /// We will soon provide a `#[derive(SolidityError)]` to clean this up.
-impl From<OwnerError> for Vec<u8> {
-    fn from(val: OwnerError) -> Self {
+impl From<OwnedError> for Vec<u8> {
+    fn from(val: OwnedError) -> Self {
         match val {
-            OwnerError::Unauthorized(err) => err.encode(),
-            OwnerError::AlreadyInitialized(err) => err.encode(),
-            OwnerError::InvalidInitialize(err) => err.encode(),
+            OwnedError::Unauthorized(err) => err.encode(),
+            OwnedError::AlreadyInitialized(err) => err.encode(),
+            OwnedError::InvalidInitialize(err) => err.encode(),
         }
     }
 }
 
 /// Simplifies the result type for the contract's methods.
-type Result<T, E = OwnerError> = core::result::Result<T, E>;
+type Result<T, E = OwnedError> = core::result::Result<T, E>;
 
-impl<T: OwnerParams> Owner<T> {
+impl<T: OwnedParams> Owned<T> {
     pub fn only_owner(&mut self) -> Result<()> {
         if msg::sender() != self.owner.get() {
-            return Err(OwnerError::Unauthorized(Unauthorized {}));
+            return Err(OwnedError::Unauthorized(Unauthorized {}));
         }
 
         Ok(())
@@ -63,7 +62,7 @@ impl<T: OwnerParams> Owner<T> {
 }
 
 #[external]
-impl<T: OwnerParams> Owner<T> {
+impl<T: OwnedParams> Owned<T> {
     pub fn transfer_ownership(&mut self, newOwner: Address) -> Result<()> {
         self.only_owner()?;
 
@@ -79,11 +78,11 @@ impl<T: OwnerParams> Owner<T> {
 
     pub fn initialize(&mut self, _owner: Address) -> Result<()> {
         if self.initialized.get() {
-            return Err(OwnerError::AlreadyInitialized(AlreadyInitialized {}));
+            return Err(OwnedError::AlreadyInitialized(AlreadyInitialized {}));
         }
 
         if _owner.is_zero() {
-            return Err(OwnerError::InvalidInitialize(InvalidInitialize {}));
+            return Err(OwnedError::InvalidInitialize(InvalidInitialize {}));
         }
 
         self.owner.set(_owner);
