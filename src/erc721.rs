@@ -9,12 +9,10 @@
 //! Note that this code is unaudited and not fit for production use.
 
 use alloc::{string::String, vec::Vec};
-use alloy_primitives::{address, Address, B256, U256};
-use alloy_sol_types::{sol, sol_data, SolError, SolType};
+use alloy_primitives::{Address, U256};
+use alloy_sol_types::{sol, SolError};
 use core::{borrow::BorrowMut, marker::PhantomData};
-use stylus_sdk::call::RawCall;
-use stylus_sdk::crypto;
-use stylus_sdk::{abi::Bytes, block, contract, call::Call, evm, msg, prelude::*};
+use stylus_sdk::{abi::Bytes, evm, msg, prelude::*};
 
 pub trait ERC721Params {
     const NAME: &'static str;
@@ -27,10 +25,10 @@ pub trait ERC721Params {
 sol_storage! {
     /// ERC721 implements all ERC-721 methods
     pub struct ERC721<T: ERC721Params> {
-        mapping(uint256 => address) ownerOf;
-        mapping(address => uint256) balanceOf;
-        mapping(uint256 => address) getApproved;
-        mapping(address => mapping(address => bool)) isApprovedForAll;
+        mapping(uint256 => address) owner_of;
+        mapping(address => uint256) balance_of;
+        mapping(uint256 => address) get_approved;
+        mapping(address => mapping(address => bool)) is_approved_for_all;
         PhantomData<T> phantom;
     }
 }
@@ -125,15 +123,15 @@ impl<T: ERC721Params> ERC721<T> {
             return Err(ERC721Error::InvalidRecipient(InvalidRecipient {}));
         }
 
-        if self.ownerOf.get(id) != Address::ZERO {
+        if self.owner_of.get(id) != Address::ZERO {
             return Err(ERC721Error::AlreadyMinted(AlreadyMinted {}));
         }
 
-        let mut to_balance = self.balanceOf.setter(to);
+        let mut to_balance = self.balance_of.setter(to);
         let balance = to_balance.get() + U256::from(1);
         to_balance.set(balance);
 
-        self.ownerOf.setter(id).set(to);
+        self.owner_of.setter(id).set(to);
 
         evm::log(Transfer {
             from: Address::ZERO,
@@ -144,20 +142,20 @@ impl<T: ERC721Params> ERC721<T> {
         Ok(())
     }
 
-    pub fn burn(&mut self, from: Address, id: U256) -> Result<()> {
-        let owner = self.ownerOf.get(id);
+    pub fn burn(&mut self, id: U256) -> Result<()> {
+        let owner = self.owner_of.get(id);
 
         if owner.is_zero() {
             return Err(ERC721Error::NotMinted(NotMinted {}));
         }
 
-        let mut owner_balance = self.balanceOf.setter(owner);
+        let mut owner_balance = self.balance_of.setter(owner);
         let balance = owner_balance.get() - U256::from(1);
         owner_balance.set(balance);
 
-        self.ownerOf.delete(id);
+        self.owner_of.delete(id);
 
-        self.getApproved.delete(id);
+        self.get_approved.delete(id);
 
         evm::log(Transfer {
             from: owner,
@@ -202,7 +200,7 @@ impl<T: ERC721Params> ERC721<T> {
     }
 
     pub fn owner_of(&self, id: U256) -> Result<Address> {
-        let owner = self.ownerOf.get(id);
+        let owner = self.owner_of.get(id);
 
         if owner.is_zero() {
             return Err(ERC721Error::NotMinted(NotMinted {}));
@@ -216,15 +214,15 @@ impl<T: ERC721Params> ERC721<T> {
             return Err(ERC721Error::ZeroAddress(ZeroAddress {}));
         }
 
-        Ok(self.balanceOf.get(owner))
+        Ok(self.balance_of.get(owner))
     }
 
     pub fn get_approved(&self, id: U256) -> Result<Address> {
-        Ok(self.getApproved.get(id))
+        Ok(self.get_approved.get(id))
     }
 
     pub fn is_approved_for_all(&self, owner: Address, operator: Address) -> Result<bool> {
-        Ok(self.isApprovedForAll.getter(owner).get(operator))
+        Ok(self.is_approved_for_all.getter(owner).get(operator))
     }
     
     #[selector(name = "tokenURI")]
@@ -233,13 +231,13 @@ impl<T: ERC721Params> ERC721<T> {
     }
 
     pub fn approve(&mut self, spender: Address, id: U256) -> Result<()> {
-        let owner = self.ownerOf.get(id);
+        let owner = self.owner_of.get(id);
 
-        if msg::sender() != owner || !self.isApprovedForAll.getter(owner).get(msg::sender()) {
+        if msg::sender() != owner || !self.is_approved_for_all.getter(owner).get(msg::sender()) {
             return Err(ERC721Error::NotAuthorized(NotAuthorized {}));
         }
 
-        self.getApproved.setter(id).set(spender);
+        self.get_approved.setter(id).set(spender);
 
         evm::log(Approval {
             owner: owner,
@@ -251,7 +249,7 @@ impl<T: ERC721Params> ERC721<T> {
     }
 
     pub fn set_approval_for_all(&mut self, operator: Address, approved: bool) -> Result<()> {
-        self.isApprovedForAll.setter(msg::sender()).insert(operator, approved);
+        self.is_approved_for_all.setter(msg::sender()).insert(operator, approved);
 
         evm::log(ApprovalForAll {
             owner: msg::sender(),
@@ -263,7 +261,7 @@ impl<T: ERC721Params> ERC721<T> {
     }
 
     pub fn transfer_from(&mut self, from: Address, to: Address, id: U256) -> Result<()> {
-        if from != self.ownerOf.get(id) {
+        if from != self.owner_of.get(id) {
             return Err(ERC721Error::WrongFrom(WrongFrom {}));
         }
 
@@ -272,23 +270,23 @@ impl<T: ERC721Params> ERC721<T> {
         }
 
         if msg::sender() != from
-            && !self.isApprovedForAll.getter(from).get(msg::sender())
-            && msg::sender() != self.getApproved.get(id)
+            && !self.is_approved_for_all.getter(from).get(msg::sender())
+            && msg::sender() != self.get_approved.get(id)
         {
             return Err(ERC721Error::NotAuthorized(NotAuthorized {}));
         }
 
-        let mut from_balance = self.balanceOf.setter(from);
+        let mut from_balance = self.balance_of.setter(from);
         let balance = from_balance.get() - U256::from(1);
         from_balance.set(balance);
 
-        let mut to_balance = self.balanceOf.setter(to);
+        let mut to_balance = self.balance_of.setter(to);
         let balance = to_balance.get() + U256::from(1);
         to_balance.set(balance);
 
-        self.ownerOf.setter(id).set(to);
+        self.owner_of.setter(id).set(to);
 
-        self.getApproved.delete(id);
+        self.get_approved.delete(id);
 
         evm::log(Transfer {
             from: from,
