@@ -211,9 +211,7 @@ impl<T: ERC1155Params> ERC1155<T> {
             return Err(ERC1155Error::NotAuthorized(NotAuthorized {}));
         }
 
-        let mut i = 0;
-
-        while i < ids.len() {
+        for i in 0..ids.len() {
             let id: U256 = ids[i];
             let amount: U256 = amounts[i];
 
@@ -224,8 +222,6 @@ impl<T: ERC1155Params> ERC1155<T> {
             let mut to_balance = storage.borrow_mut().balance_of.setter(to);
             let balance = to_balance.get(id) + amount;
             to_balance.insert(id, balance);
-            
-            i += 1;
         }
 
         evm::log(TransferBatch {
@@ -237,6 +233,28 @@ impl<T: ERC1155Params> ERC1155<T> {
         });
 
         Self::call_receiver_batch(storage, ids, from, to, amounts, data.0)
+    }
+
+    pub fn balance_of_batch(&self, owners: Vec<Address>, ids: Vec<U256>) -> Result<Vec<U256>> {
+        if owners.len() != ids.len() {
+            return Err(ERC1155Error::LengthMismatch(LengthMismatch {}));
+        }
+
+        let mut balances = Vec::new();
+
+        for i in 0..owners.len() {
+            balances.push(self.balance_of.getter(owners[i]).get(ids[i]));
+        }
+
+        Ok(balances)
+    }
+
+
+    pub fn supports_interface(interface: [u8; 4]) -> Result<bool> {
+        let supported = interface == 0x01ffc9a7u32.to_be_bytes() // ERC165 Interface ID for ERC165
+            || interface == 0xd9b67a26u32.to_be_bytes() // ERC165 Interface ID for ERC1155
+            || interface == 0x0e89341cu32.to_be_bytes(); // ERC165 Interface ID for ERC1155MetadataURI
+        Ok(supported)
     }
 }
 
