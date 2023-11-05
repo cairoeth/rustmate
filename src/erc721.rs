@@ -87,14 +87,6 @@ impl From<ERC721Error> for Vec<u8> {
 /// Simplifies the result type for the contract's methods.
 type Result<T, E = ERC721Error> = core::result::Result<T, E>;
 
-sol_interface! {
-    interface IERC721TokenReceiver {
-        function onERC721Received(address operator, address from, uint256 token_id, bytes data) external returns(bytes4);
-    }
-}
-
-const ERC721_TOKEN_RECEIVER_ID: u32 = 0x150b7a02;
-
 impl<T: ERC721Params> ERC721<T> {
     fn call_receiver<S: TopLevelStorage>(
         storage: &mut S,
@@ -109,7 +101,8 @@ impl<T: ERC721Params> ERC721<T> {
                 .on_erc_721_received(&mut *storage, msg::sender(), from, id, data)?
                 .0;
 
-            if u32::from_be_bytes(received) != ERC721_TOKEN_RECEIVER_ID {
+            // 0x150b7a02 = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
+            if u32::from_be_bytes(received) != 0x150b7a02 {
                 return Err(ERC721Error::UnsafeRecipient(UnsafeRecipient {}));
             }
         }
@@ -125,6 +118,76 @@ impl<T: ERC721Params> ERC721<T> {
     ) -> Result<()> {
         storage.borrow_mut().transfer_from(from, to, id)?;
         Self::call_receiver(storage, id, from, to, data)
+    }
+
+    pub fn mint(&mut self, to: Address, id: U256) -> Result<()> {
+        if to.is_zero() {
+            return Err(ERC721Error::InvalidRecipient(InvalidRecipient {}));
+        }
+
+        if self.ownerOf.get(id) != Address::ZERO {
+            return Err(ERC721Error::AlreadyMinted(AlreadyMinted {}));
+        }
+
+        let mut to_balance = self.balanceOf.setter(to);
+        let balance = to_balance.get() + U256::from(1);
+        to_balance.set(balance);
+
+        self.ownerOf.setter(id).set(to);
+
+        evm::log(Transfer {
+            from: Address::ZERO,
+            to: to,
+            id: id,
+        });
+    
+        Ok(())
+    }
+
+    pub fn burn(&mut self, from: Address, id: U256) -> Result<()> {
+        let owner = self.ownerOf.get(id);
+
+        if owner.is_zero() {
+            return Err(ERC721Error::NotMinted(NotMinted {}));
+        }
+
+        let mut owner_balance = self.balanceOf.setter(owner);
+        let balance = owner_balance.get() - U256::from(1);
+        owner_balance.set(balance);
+
+        self.ownerOf.delete(id);
+
+        self.getApproved.delete(id);
+
+        evm::log(Transfer {
+            from: owner,
+            to: Address::ZERO,
+            id: id,
+        });
+
+        Ok(())
+    }
+
+    pub fn safe_mint<S: TopLevelStorage>(&mut self, storage: &mut S, to: Address, id: U256) -> Result<()> {
+        Self::mint(self, to, id)?;
+
+        Self::call_receiver(storage, id, Address::ZERO, to, vec![])?;
+
+        Ok(())
+    }
+
+    pub fn safe_mint_with_data<S: TopLevelStorage>(
+        &mut self,
+        storage: &mut S,
+        to: Address,
+        id: U256,
+        data: Bytes,
+    ) -> Result<()> {
+        Self::mint(self, to, id)?;
+
+        Self::call_receiver(storage, id, Address::ZERO, to, data.0)?;
+
+        Ok(())
     }
 }
 
@@ -165,8 +228,8 @@ impl<T: ERC721Params> ERC721<T> {
     }
     
     #[selector(name = "tokenURI")]
-    pub fn token_uri(&self, token_id: U256) -> Result<String> {
-        Ok(T::token_uri(token_id))
+    pub fn token_uri(&self, id: U256) -> Result<String> {
+        Ok(T::token_uri(id))
     }
 
     pub fn approve(&mut self, spender: Address, id: U256) -> Result<()> {
@@ -261,5 +324,11 @@ impl<T: ERC721Params> ERC721<T> {
             || interface == 0x80ac58cdu32.to_be_bytes() // ERC165 Interface ID for ERC721
             || interface == 0x780e9d63u32.to_be_bytes(); // ERC165 Interface ID for ERC721Metadata
         Ok(supported)
+    }
+}
+
+sol_interface! {
+    interface IERC721TokenReceiver {
+        function onERC721Received(address operator, address from, uint256 token_id, bytes data) external returns(bytes4);
     }
 }
