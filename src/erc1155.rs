@@ -49,6 +49,7 @@ sol! {
 
     error NotAuthorized();
     error UnsafeRecipient();
+    error LengthMismatch();
 }
 
 /// Represents the ways methods may fail.
@@ -56,6 +57,7 @@ pub enum ERC1155Error {
     NotAuthorized(NotAuthorized),
     CallFailed(stylus_sdk::call::Error),
     UnsafeRecipient(UnsafeRecipient),
+    LengthMismatch(LengthMismatch),
 }
 
 impl From<stylus_sdk::call::Error> for ERC1155Error {
@@ -71,6 +73,7 @@ impl From<ERC1155Error> for Vec<u8> {
             ERC1155Error::CallFailed(err) => err.into(),
             ERC1155Error::NotAuthorized(err) => err.encode(),
             ERC1155Error::UnsafeRecipient(err) => err.encode(),
+            ERC1155Error::LengthMismatch(err) => err.encode(),
         }
     }
 }
@@ -93,9 +96,35 @@ impl<T: ERC1155Params> ERC1155<T> {
                 .on_erc_1155_received(&mut *storage, msg::sender(), from, id, value, data)?
                 .0;
 
-            // TODO: Update selector.
-            // 0x150b7a02 = bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
-            if u32::from_be_bytes(received) != 0x150b7a02 {
+            // 0xf23a6e61 = bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
+            if u32::from_be_bytes(received) != 0xf23a6e61 {
+                return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
+            }
+        } else {
+            if to == Address::ZERO {
+                return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn call_receiver_batch<S: TopLevelStorage>(
+        storage: &mut S,
+        ids: Vec<U256>,
+        from: Address,
+        to: Address,
+        values: Vec<U256>,
+        data: Vec<u8>,
+    ) -> Result<()> {
+        if to.has_code() {
+            let receiver = IERC1155TokenReceiver::new(to);
+            let received = receiver
+                .on_erc_1155_batch_received(&mut *storage, msg::sender(), from, ids, values, data)?
+                .0;
+
+            // 0xbc197c81 = bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))
+            if u32::from_be_bytes(received) != 0xbc197c81 {
                 return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
             }
         } else {
@@ -164,6 +193,50 @@ impl<T: ERC1155Params> ERC1155<T> {
         });
 
         Self::call_receiver(storage, id, from, to, amount, data.0)
+    }
+
+    pub fn safe_batch_transfer_from<S: TopLevelStorage + BorrowMut<Self>>(
+        storage: &mut S,
+        from: Address,
+        to: Address,
+        ids: Vec<U256>,
+        amounts: Vec<U256>,
+        data: Bytes,
+    ) -> Result<()> {
+        if ids.len() != amounts.len() {
+            return Err(ERC1155Error::LengthMismatch(LengthMismatch {}));
+        }
+
+        if msg::sender() != from || !storage.borrow_mut().is_approved_for_all.getter(from).get(msg::sender()) {
+            return Err(ERC1155Error::NotAuthorized(NotAuthorized {}));
+        }
+
+        let mut i = 0;
+
+        while i < ids.len() {
+            let id: U256 = ids[i];
+            let amount: U256 = amounts[i];
+
+            let mut from_balance = storage.borrow_mut().balance_of.setter(from);
+            let balance = from_balance.get(id) - amount;
+            from_balance.insert(id, balance);
+
+            let mut to_balance = storage.borrow_mut().balance_of.setter(to);
+            let balance = to_balance.get(id) + amount;
+            to_balance.insert(id, balance);
+            
+            i += 1;
+        }
+
+        evm::log(TransferBatch {
+            operator: msg::sender(),
+            from: from,
+            to: to,
+            ids: ids.clone(),
+            amounts: amounts.clone(),
+        });
+
+        Self::call_receiver_batch(storage, ids, from, to, amounts, data.0)
     }
 }
 
