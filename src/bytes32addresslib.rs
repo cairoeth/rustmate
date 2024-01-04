@@ -7,7 +7,7 @@
 
 use alloy_primitives::{Address, FixedBytes};
 use core::marker::PhantomData;
-use stylus_sdk::{prelude::*};
+use stylus_sdk::prelude::*;
 
 pub trait Bytes32AddressLibParams {}
 
