@@ -1,16 +1,16 @@
 #![cfg_attr(not(feature = "export-abi"), no_main, no_std)]
 extern crate alloc;
 
-use crate::erc20::{ERC20Params, ERC20};
-use alloc::{vec::Vec};
+mod erc20;
+
+use create::erc20::{ERC20Params, ERC20};
+use alloc::vec::Vec;
 use alloy_primitives::{B256, U256};
 use alloy_sol_types::sol;
 use stylus_sdk::{call, evm, msg, prelude::*};
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-mod erc20;
 
 struct WETHParams;
 
@@ -46,7 +46,7 @@ impl WETH {
 
         evm::log(Deposit {
             from: msg::sender(),
-            amount: msg::value()
+            amount: msg::value(),
         });
 
         Ok(())
@@ -57,9 +57,9 @@ impl WETH {
 
         evm::log(Withdrawal {
             to: msg::sender(),
-            amount: amount
+            amount: amount,
         });
-        
+
         call::transfer_eth(msg::sender(), amount)
     }
 

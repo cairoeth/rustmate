@@ -8,9 +8,9 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{vec::Vec};
+use alloc::vec::Vec;
 use alloy_primitives::{Address, U256};
-use alloy_sol_types::{sol};
+use alloy_sol_types::sol;
 use core::marker::PhantomData;
 use stylus_sdk::{evm, msg, prelude::*};
 

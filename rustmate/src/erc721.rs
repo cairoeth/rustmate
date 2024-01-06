@@ -138,7 +138,7 @@ impl<T: ERC721Params> ERC721<T> {
             to: to,
             id: id,
         });
-    
+
         Ok(())
     }
 
@@ -166,7 +166,12 @@ impl<T: ERC721Params> ERC721<T> {
         Ok(())
     }
 
-    pub fn safe_mint<S: TopLevelStorage>(&mut self, storage: &mut S, to: Address, id: U256) -> Result<()> {
+    pub fn safe_mint<S: TopLevelStorage>(
+        &mut self,
+        storage: &mut S,
+        to: Address,
+        id: U256,
+    ) -> Result<()> {
         Self::mint(self, to, id)?;
 
         Self::call_receiver(storage, id, Address::ZERO, to, vec![])?;
@@ -224,7 +229,7 @@ impl<T: ERC721Params> ERC721<T> {
     pub fn is_approved_for_all(&self, owner: Address, operator: Address) -> Result<bool> {
         Ok(self.is_approved_for_all.getter(owner).get(operator))
     }
-    
+
     #[selector(name = "tokenURI")]
     pub fn token_uri(&self, id: U256) -> Result<String> {
         Ok(T::token_uri(id))
@@ -249,7 +254,9 @@ impl<T: ERC721Params> ERC721<T> {
     }
 
     pub fn set_approval_for_all(&mut self, operator: Address, approved: bool) -> Result<()> {
-        self.is_approved_for_all.setter(msg::sender()).insert(operator, approved);
+        self.is_approved_for_all
+            .setter(msg::sender())
+            .insert(operator, approved);
 
         evm::log(ApprovalForAll {
             owner: msg::sender(),

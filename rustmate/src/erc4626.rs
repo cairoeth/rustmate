@@ -5,7 +5,7 @@ use crate::erc20::{ERC20Params, ERC20};
 use alloc::vec::Vec;
 use alloy_primitives::{Address, B256, U256};
 use alloy_sol_types::{sol, SolError};
-use stylus_sdk::{call, evm, msg, prelude::*};
+use stylus_sdk::{evm, msg, prelude::*};
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -166,7 +166,7 @@ impl ERC4626 {
             assets,
             shares,
         });
-    
+
         // TODO: asset.safeTransfer(receiver, assets);
 
         Ok(shares)
@@ -201,9 +201,9 @@ impl ERC4626 {
             assets,
             shares,
         });
-    
+
         // TODO: asset.safeTransfer(receiver, assets);
-        
+
         Ok(assets)
     }
 

@@ -5,10 +5,10 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{vec::Vec};
-use alloy_primitives::{Address};
+use alloc::vec::Vec;
+use alloy_primitives::Address;
 use alloy_sol_types::{sol, SolError};
-use core::{marker::PhantomData};
+use core::marker::PhantomData;
 use stylus_sdk::{evm, msg, prelude::*};
 
 pub trait OwnedParams {}
@@ -63,14 +63,14 @@ impl<T: OwnedParams> Owned<T> {
 
 #[external]
 impl<T: OwnedParams> Owned<T> {
-    pub fn transfer_ownership(&mut self, newOwner: Address) -> Result<()> {
+    pub fn transfer_ownership(&mut self, new_owner: Address) -> Result<()> {
         self.only_owner()?;
 
-        self.owner.set(newOwner);
+        self.owner.set(new_owner);
 
         evm::log(OwnershipTransferred {
             user: msg::sender(),
-            newOwner: newOwner,
+            newOwner: new_owner,
         });
 
         Ok(())

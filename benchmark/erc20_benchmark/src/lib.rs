@@ -1,9 +1,8 @@
-#![cfg_attr(not(feature = "export-abi"), no_std)]
+// Only run this as a WASM if the export-abi feature is not set.
+#![cfg_attr(not(feature = "export-abi"), no_main)]
 extern crate alloc;
 
-mod erc20;
-
-use crate::erc20::{ERC20Params, ERC20};
+use rustmate::erc20::{ERC20Params, ERC20};
 use alloc::vec::Vec;
 use alloy_primitives::B256;
 use stylus_sdk::{alloy_primitives::U256, msg, prelude::*};
