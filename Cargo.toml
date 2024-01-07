@@ -16,13 +16,3 @@ wee_alloc = "0.4.5"
 
 [features]
 export-abi = ["stylus-sdk/export-abi"]
-
-[lib]
-crate-type = ["lib", "cdylib"]
-
-[profile.release]
-codegen-units = 1
-strip = true
-lto = true
-panic = "abort"
-opt-level = "s"

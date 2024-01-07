@@ -2,13 +2,10 @@
 #![cfg_attr(not(feature = "export-abi"), no_main)]
 extern crate alloc;
 
-use rustmate::erc20::{ERC20Params, ERC20};
 use alloc::vec::Vec;
 use alloy_primitives::B256;
+use rustmate::tokens::erc20::{ERC20Params, ERC20};
 use stylus_sdk::{alloy_primitives::U256, msg, prelude::*};
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub struct SampleParams;
 
