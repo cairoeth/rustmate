@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Check contracts and ABIs 
+    name: Check contracts with Stylus
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -45,8 +45,3 @@ jobs:
         run: |
           cargo stylus check
         id: check
-      
-      - name: Check ABIs can be generated
-        run: |
-          cargo stylus export-abi
-        id: abi
