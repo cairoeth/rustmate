@@ -1,6 +1,7 @@
 # 🦀 rustmate
 
 [![Check smart contracts](https://github.com/cairoeth/rustmate/actions/workflows/stylus.yml/badge.svg)](https://github.com/cairoeth/rustmate/actions/workflows/stylus.yml)
+[![Run benchmarks](https://github.com/cairoeth/rustmate/actions/workflows/benchmark.yml/badge.svg)](https://github.com/cairoeth/rustmate/actions/workflows/benchmark.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 **Blazing fast**, **modern**, and **optimized** Rust building blocks for smart contract development using Stylus. 
