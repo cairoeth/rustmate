@@ -1,0 +1,8 @@
+ERC1155:balanceOf(address,uint256) (gas: 28414)
+ERC1155:isApprovedForAll(address,address) (gas: 28510)
+ERC1155:uri(uint256) (gas: 24357)
+ERC1155:setApprovalForAll(address,bool) (gas: 51345)
+ERC1155:safeTransferFrom(address,address,uint256,uint256,bytes) (gas: )
+ERC1155:safeBatchTransferFrom(address,address,uint256[],uint256[],bytes) (gas: )
+ERC1155:balanceOfBatch(address[],uint256[]) (gas: 25111)
+ERC1155:supportsInterface(bytes4) (gas: )

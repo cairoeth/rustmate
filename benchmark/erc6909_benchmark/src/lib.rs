@@ -2,11 +2,8 @@
 #![cfg_attr(not(feature = "export-abi"), no_main)]
 extern crate alloc;
 
-use rustmate::erc6909::{ERC6909Params, ERC6909};
+use rustmate::tokens::erc6909::{ERC6909Params, ERC6909};
 use stylus_sdk::prelude::*;
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub struct SampleParams;
 
