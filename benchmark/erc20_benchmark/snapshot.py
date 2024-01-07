@@ -25,3 +25,5 @@ with open('.gas-snapshot', 'w') as snapshot:
     for function, args in functions.items():
         gas = subprocess.run(['cast', 'estimate', address, function + args[0]] + args[1:] + ['--rpc-url', 'http://localhost:8547'], stdout=subprocess.PIPE).stdout.decode("utf-8")[:-1]
         snapshot.write(f'ERC20:{function} (gas: {gas})\n')
+
+print(subprocess.run(['cat', '.gas-snapshot'], stdout=subprocess.PIPE).stdout.decode("utf-8"))
