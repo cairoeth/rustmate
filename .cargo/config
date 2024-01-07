@@ -5,13 +5,23 @@ rustflags = [
 
 [target.aarch64-apple-darwin]
 rustflags = [
-"-C", "link-arg=-undefined",
-"-C", "link-arg=dynamic_lookup",
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
 ]
 
 [profile.release]
-codegen-units = 1
-strip = true
-lto = true
-panic = "abort"
-opt-level = "s"
+codegen-units = 1        # prefer efficiency to compile time
+panic = "abort"          # use simple panics
+opt-level = "z"          # optimize for size
+strip = true             # remove debug info
+lto = true               # link time optimization
+debug = false            # no debug data
+rpath = false            # no run-time search path
+debug-assertions = false # prune debug assertions
+incremental = false      # no incremental builds

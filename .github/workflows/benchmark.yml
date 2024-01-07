@@ -1,0 +1,86 @@
+name: benchmark
+
+on: push
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Run benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository content
+        uses: actions/checkout@v4
+        id: repo
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rust-src
+          target: wasm32-unknown-unknown
+        id: rust
+
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Stylus CLI
+        run: |
+          cargo install --locked cargo-stylus || true
+        id: stylus
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        id: foundry
+
+      - name: Clone test node
+        uses: actions/checkout@v4
+        with:
+          repository: OffchainLabs/nitro-testnode
+          path: nitro-testnode
+          ref: stylus
+          submodules: recursive
+          token: ${{ github.token }}
+        id: get-node
+
+      - name: Install docker-compose
+        run: |
+          sudo curl -L https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+        id: docker-compose
+
+      - name: Run node
+        working-directory: ./nitro-testnode
+        run: |
+          ./test-node.bash --init --detach
+        id: run-node
+
+      - name: Fund deployer
+        working-directory: ./nitro-testnode
+        run: |
+          ./test-node.bash script send-l2 --to address_0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 --ethamount 100
+        id: fund-deployer
+
+      - name: Setup Python 
+        uses: deadsnakes/action@v2.1.1
+        with:
+          python-version: "3.10"
+        id: python
+
+      - name: Run ERC20 benchmark
+        working-directory: ./benchmark/erc20_benchmark
+        run: python snapshot.py
+        id: erc20-benchmark

@@ -7,17 +7,10 @@ edition = "2021"
 alloy-primitives = "0.3.1"
 alloy-sol-types = "0.3.1"
 stylus-sdk = "0.4.2"
-wee_alloc = "0.4.5"
 rustmate = { path = "../../" }
 
 [features]
 export-abi = ["stylus-sdk/export-abi"]
 
-[profile.release]
-codegen-units = 1
-strip = true
-lto = true
-panic = "abort"
-opt-level = "s"
-
-[workspace]
+[lib]
+crate-type = ["lib", "cdylib"]

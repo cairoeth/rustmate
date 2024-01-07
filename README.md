@@ -10,7 +10,6 @@
 ## 📜 Contracts
 
 ```ml
-src
 auth
 ├─ Owned — "Simple single owner authorization"
 ├─ Auth — "Flexible and updatable auth pattern"
@@ -94,10 +93,10 @@ Clone Arbitrum Nitro node that supports Stylus:
 git clone -b stylus --recurse-submodules https://github.com/OffchainLabs/nitro-testnode.git && cd nitro-testnode
 ```
 
-Run the node and wait a minute for it to start up:
+Run the node and wait for it to start up:
 
 ```bash
-./test-node.bash --init
+./test-node.bash --init --detach
 ```
 
 Open another terminal window and fund the deployer address:
