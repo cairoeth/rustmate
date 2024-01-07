@@ -83,4 +83,19 @@ jobs:
       - name: Run ERC20 benchmark
         working-directory: ./benchmark/erc20_benchmark
         run: python snapshot.py
-        id: erc20-benchmark
+        id: erc20
+
+      - name: Run ERC721 benchmark
+        working-directory: ./benchmark/erc721_benchmark
+        run: python snapshot.py
+        id: erc721
+      
+      - name: Run ERC1155 benchmark
+        working-directory: ./benchmark/erc1155_benchmark
+        run: python snapshot.py
+        id: erc1155
+      
+      - name: Run ERC6909 benchmark
+        working-directory: ./benchmark/erc6909_benchmark
+        run: python snapshot.py
+        id: erc6909
