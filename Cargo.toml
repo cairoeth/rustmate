@@ -5,7 +5,7 @@ edition = "2021"
 license = "AGPL-3.0"
 homepage = "https://github.com/cairoeth/rustmate"
 repository = "https://github.com/cairoeth/rustmate"
-keywords = ["arbitrum", "ethereum", "stylus", "alloy", "rust", "rustmate"]
+keywords = ["arbitrum", "ethereum", "stylus", "alloy", "rust"]
 description = "Blazing fast, modern, and optimized Rust building blocks for smart contract development using Stylus."
 readme = "README.md"
 
