@@ -6,7 +6,8 @@ license = "AGPL-3.0"
 homepage = "https://github.com/cairoeth/rustmate"
 repository = "https://github.com/cairoeth/rustmate"
 keywords = ["arbitrum", "ethereum", "stylus", "alloy", "rust", "rustmate"]
-description = "Blazing fast, modern, opinionated, and extremely optimized Rust building blocks for smart contract development."
+description = "Blazing fast, modern, and optimized Rust building blocks for smart contract development using Stylus."
+readme = "README.md"
 
 [dependencies]
 alloy-primitives = "0.3.1"
