@@ -24,7 +24,6 @@ sol_storage! {
     pub struct MyToken {
         #[borrow] // Allows erc20 to access MyToken's storage and make calls
         ERC20<SampleParams> erc20;
-        uint256 total_supply;
     }
 }
 

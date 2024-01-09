@@ -47,24 +47,71 @@ Import the contracts you want to use:
 use rustmate::tokens::erc20::{ERC20, ERC20Params};
 ```
 
-## ✅ Benchmarks
+## ✅ Gas benchmarks
 
 ### 🧪 Results
 
 <details><summary>ERC20</summary>
 
-| Function | Rustmate | Solmate | OpenZeppelin Contracts
-| -------- | -------- | -------- | -------- |
-| name()   | TBD    | TBD   | TBD    |
-| symbol()   | TBD   | TBD   | TBD    |
-| decimals()   | TBD   | TBD   | TBD    |
-| totalSupply()   | TBD   | TBD   | TBD    |
-| balanceOf(address)   | TBD   | TBD   | TBD    |
-| allowance(address,address)   | TBD   | TBD   | TBD    |
-| nonces(address)   | TBD   | TBD   | TBD    |
-| approve(address,uint256)   | TBD   | TBD   | TBD    |
-| transfer(address,uint256)   | TBD   | TBD   | TBD    |
-| transferFrom(address,address,uint256)   | TBD   | TBD   | TBD    |
+|    Function    | Rustmate | Solmate | OpenZeppelin Contracts 5.0 |
+|:--------------:|:--------:|:-------:|:--------------------------:|
+|     name()     |   23043  |  24504  |            24514           |
+|    symbol()    |   22974  |  24571  |            24535           |
+|   decimals()   |   22726  |  21512  |            21520           |
+|  totalSupply() |   25617  |  23562  |            23570           |
+|   balanceOf()  |   26851  |  24292  |            24296           |
+|   allowance()  |   28263  |  25011  |            25066           |
+|    nonces()    |   26835  |  24302  |             N/A            |
+|    approve()   |   50557  |  46683  |            46902           |
+|   transfer()   |   74234  |  47133  |            27454           |
+| transferFrom() |   60116  |  28993  |            29202           |
+
+</details>
+
+<details><summary>ERC721</summary>
+
+|       Function      | Rustmate | Solmate | OpenZeppelin Contracts 5.0 |
+|:-------------------:|:--------:|:-------:|:--------------------------:|
+|        name()       |   23286  |  24548  |            24556           |
+|       symbol()      |   23225  |  24548  |            24556           |
+|      ownerOf()      |   24212  |  24212  |            24308           |
+|     balanceOf()     |   27094  |  24352  |            24352           |
+|    getApproved()    |   26749  |  24132  |            26545           |
+|  isApprovedForAll() |   28447  |  25046  |            25104           |
+|      tokenURI()     |   24293  |  23420  |            23420           |
+|      approve()      |   48639  |  48693  |            49043           |
+| setApprovalForAll() |   51279  |  46561  |            46669           |
+|    transferFrom()   |   32777  |  32437  |            32947           |
+|  safeTransferFrom() |   32781  |  32643  |            31264           |
+|  safeTransferFrom() |   33146  |  33140  |            34139           |
+| supportsInterface() |   21983  |  21983  |            21960           |
+
+</details>
+
+<details><summary>ERC1155</summary>
+
+|         Function        | Rustmate | Solmate | OpenZeppelin Contracts 5.0 |
+|:-----------------------:|:--------:|:-------:|:--------------------------:|
+|       balanceOf()       |   28390  |  24631  |            24675           |
+|    isApprovedForAll()   |   28474  |  25022  |            25081           |
+|          uri()          |   24346  |  22291  |            24984           |
+|   setApprovalForAll()   |   51321  |  46581  |            46690           |
+|    safeTransferFrom()   |   30167  |  29793  |            31672           |
+| safeBatchTransferFrom() |   33192  |  32054  |            33363           |
+|     balanceOfBatch()    |   25094  |  22961  |            23735           |
+|   supportsInterface()   |   22006  |  22006  |            22058           |
+
+</details>
+
+<details><summary>ERC6909</summary>
+
+|       Function      | Rustmate | Solmate | OpenZeppelin Contracts 5.0 |
+|:-------------------:|:--------:|:-------:|:--------------------------:|
+|      transfer()     |   77615  |  28656  |             N/A            |
+|    transferFrom()   |   68799  |  29356  |             N/A            |
+|      approve()      |   52110  |  47430  |             N/A            |
+|    setOperator()    |   51152  |  46750  |             N/A            |
+| supportsInterface() |   22376  |  21962  |             N/A            |
 
 </details>
 
