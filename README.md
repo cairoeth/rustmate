@@ -37,7 +37,7 @@ cargo stylus new my-project --minimal
 Then, install `rustmate`:
 
 ```bash
-cargo install rustmate
+cargo add rustmate
 ```
 
 Import the contracts you want to use:
