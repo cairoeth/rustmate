@@ -89,7 +89,7 @@ type Result<T, E = ERC20Error> = core::result::Result<T, E>;
 
 impl<T: ERC20Params> ERC20<T> {
     pub fn compute_domain_separator() -> Result<B256> {
-        let mut digest_input = [0u8; 32 + 32];
+        let mut digest_input = [0u8; 160];
         digest_input[0..32].copy_from_slice(&crypto::keccak("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)".as_bytes())[..]);
         digest_input[32..64].copy_from_slice(&crypto::keccak(T::NAME.as_bytes())[..]);
         digest_input[64..96].copy_from_slice(&crypto::keccak("1".as_bytes())[..]);
@@ -228,7 +228,7 @@ impl<T: ERC20Params> ERC20<T> {
         let nonce = nonce_setter.get();
         nonce_setter.set(nonce + U256::from(1));
 
-        let mut struct_hash = [0u8; 32 + 32];
+        let mut struct_hash = [0u8; 192];
         struct_hash[0..32].copy_from_slice(&crypto::keccak(b"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")[..]);
         struct_hash[32..64].copy_from_slice(&owner[..]);
         struct_hash[64..96].copy_from_slice(&spender[..]);
