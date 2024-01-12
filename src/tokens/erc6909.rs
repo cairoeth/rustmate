@@ -9,10 +9,17 @@
 //! Note that this code is unaudited and not fit for production use.
 
 use alloc::vec::Vec;
-use alloy_primitives::{Address, U256};
+use alloy_primitives::{
+    Address,
+    U256,
+};
 use alloy_sol_types::sol;
 use core::marker::PhantomData;
-use stylus_sdk::{evm, msg, prelude::*};
+use stylus_sdk::{
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait ERC6909Params {}
 
@@ -61,8 +68,8 @@ impl<T: ERC6909Params> ERC6909<T> {
             caller: msg::sender(),
             from: Address::ZERO,
             to: receiver,
-            id: id,
-            amount: amount,
+            id,
+            amount,
         });
     }
 
@@ -79,8 +86,8 @@ impl<T: ERC6909Params> ERC6909<T> {
             caller: msg::sender(),
             from: sender,
             to: Address::ZERO,
-            id: id,
-            amount: amount,
+            id,
+            amount,
         });
     }
 }
@@ -100,8 +107,8 @@ impl<T: ERC6909Params> ERC6909<T> {
             caller: msg::sender(),
             from: msg::sender(),
             to: receiver,
-            id: id,
-            amount: amount,
+            id,
+            amount,
         });
 
         Ok(true)
@@ -136,8 +143,8 @@ impl<T: ERC6909Params> ERC6909<T> {
             caller: msg::sender(),
             from: sender,
             to: receiver,
-            id: id,
-            amount: amount,
+            id,
+            amount,
         });
 
         Ok(true)
@@ -151,9 +158,9 @@ impl<T: ERC6909Params> ERC6909<T> {
 
         evm::log(Approval {
             owner: msg::sender(),
-            spender: spender,
-            id: id,
-            amount: amount,
+            spender,
+            id,
+            amount,
         });
 
         Ok(true)
@@ -166,8 +173,8 @@ impl<T: ERC6909Params> ERC6909<T> {
 
         evm::log(OperatorSet {
             owner: msg::sender(),
-            operator: operator,
-            approved: approved,
+            operator,
+            approved,
         });
 
         Ok(true)

@@ -5,10 +5,24 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloy_primitives::{Address, FixedBytes};
-use alloy_sol_types::{sol, SolError};
-use core::{borrow::BorrowMut, marker::PhantomData};
-use stylus_sdk::{contract, evm, msg, prelude::*};
+use alloy_primitives::{
+    Address,
+    FixedBytes,
+};
+use alloy_sol_types::{
+    sol,
+    SolError,
+};
+use core::{
+    borrow::BorrowMut,
+    marker::PhantomData,
+};
+use stylus_sdk::{
+    contract,
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait AuthParams {}
 
@@ -71,7 +85,7 @@ impl<T: AuthParams> Auth<T> {
         let authority_given = Authority::new(authority);
         let status = authority_given.can_call(&mut *storage, user, target, sig)?;
 
-        return Ok(status);
+        Ok(status)
     }
 
     fn is_authorized<S: TopLevelStorage + BorrowMut<Self>>(
@@ -90,7 +104,7 @@ impl<T: AuthParams> Auth<T> {
 #[external]
 impl<T: AuthParams> Auth<T> {
     pub fn owner(&self) -> Result<Address> {
-        Ok(Address::from(self.owner.get()))
+        Ok(self.owner.get())
     }
 
     pub fn authority(&self) -> Result<Authority> {

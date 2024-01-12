@@ -8,11 +8,28 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{string::String, vec::Vec};
-use alloy_primitives::{Address, U256};
-use alloy_sol_types::{sol, SolError};
-use core::{borrow::BorrowMut, marker::PhantomData};
-use stylus_sdk::{abi::Bytes, evm, msg, prelude::*};
+use alloc::{
+    string::String,
+    vec::Vec,
+};
+use alloy_primitives::{
+    Address,
+    U256,
+};
+use alloy_sol_types::{
+    sol,
+    SolError,
+};
+use core::{
+    borrow::BorrowMut,
+    marker::PhantomData,
+};
+use stylus_sdk::{
+    abi::Bytes,
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait ERC1155Params {
     fn uri(id: U256) -> String;
@@ -100,10 +117,8 @@ impl<T: ERC1155Params> ERC1155<T> {
             if u32::from_be_bytes(received) != 0xf23a6e61 {
                 return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
             }
-        } else {
-            if to == Address::ZERO {
-                return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
-            }
+        } else if to == Address::ZERO {
+            return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
         }
 
         Ok(())
@@ -127,10 +142,8 @@ impl<T: ERC1155Params> ERC1155<T> {
             if u32::from_be_bytes(received) != 0xbc197c81 {
                 return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
             }
-        } else {
-            if to == Address::ZERO {
-                return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
-            }
+        } else if to == Address::ZERO {
+            return Err(ERC1155Error::UnsafeRecipient(UnsafeRecipient {}));
         }
 
         Ok(())
@@ -151,9 +164,9 @@ impl<T: ERC1155Params> ERC1155<T> {
         evm::log(TransferSingle {
             operator: msg::sender(),
             from: Address::ZERO,
-            to: to,
-            id: id,
-            amount: amount,
+            to,
+            id,
+            amount,
         });
 
         Self::call_receiver(storage, id, Address::ZERO, to, amount, data.0)?;
@@ -184,7 +197,7 @@ impl<T: ERC1155Params> ERC1155<T> {
         evm::log(TransferBatch {
             operator: msg::sender(),
             from: Address::ZERO,
-            to: to,
+            to,
             ids: ids.clone(),
             amounts: amounts.clone(),
         });
@@ -207,10 +220,10 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         evm::log(TransferBatch {
             operator: msg::sender(),
-            from: from,
+            from,
             to: Address::ZERO,
-            ids: ids,
-            amounts: amounts,
+            ids,
+            amounts,
         });
 
         Ok(())
@@ -223,10 +236,10 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         evm::log(TransferSingle {
             operator: msg::sender(),
-            from: from,
+            from,
             to: Address::ZERO,
-            id: id,
-            amount: amount,
+            id,
+            amount,
         });
 
         Ok(())
@@ -255,8 +268,8 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         evm::log(ApprovalForAll {
             owner: msg::sender(),
-            operator: operator,
-            approved: approved,
+            operator,
+            approved,
         });
 
         Ok(())
@@ -290,10 +303,10 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         evm::log(TransferSingle {
             operator: msg::sender(),
-            from: from,
-            to: to,
-            id: id,
-            amount: amount,
+            from,
+            to,
+            id,
+            amount,
         });
 
         Self::call_receiver(storage, id, from, to, amount, data.0)
@@ -336,8 +349,8 @@ impl<T: ERC1155Params> ERC1155<T> {
 
         evm::log(TransferBatch {
             operator: msg::sender(),
-            from: from,
-            to: to,
+            from,
+            to,
             ids: ids.clone(),
             amounts: amounts.clone(),
         });
