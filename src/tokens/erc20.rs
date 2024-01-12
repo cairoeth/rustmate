@@ -8,13 +8,32 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{string::String, vec::Vec};
-use alloy_primitives::{address, Address, B256, U256};
-use alloy_sol_types::{sol, sol_data, SolError, SolType};
+use alloc::{
+    string::String,
+    vec::Vec,
+};
+use alloy_primitives::{
+    address,
+    Address,
+    B256,
+    U256,
+};
+use alloy_sol_types::{
+    sol,
+    sol_data,
+    SolError,
+    SolType,
+};
 use core::marker::PhantomData;
 use stylus_sdk::call::RawCall;
 use stylus_sdk::crypto;
-use stylus_sdk::{block, contract, evm, msg, prelude::*};
+use stylus_sdk::{
+    block,
+    contract,
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait ERC20Params {
     const NAME: &'static str;
@@ -70,7 +89,7 @@ type Result<T, E = ERC20Error> = core::result::Result<T, E>;
 
 impl<T: ERC20Params> ERC20<T> {
     pub fn compute_domain_separator() -> Result<B256> {
-        let mut digest_input = [0u8; 32 + 32];
+        let mut digest_input = [0u8; 160];
         digest_input[0..32].copy_from_slice(&crypto::keccak("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)".as_bytes())[..]);
         digest_input[32..64].copy_from_slice(&crypto::keccak(T::NAME.as_bytes())[..]);
         digest_input[64..96].copy_from_slice(&crypto::keccak("1".as_bytes())[..]);
@@ -89,8 +108,8 @@ impl<T: ERC20Params> ERC20<T> {
 
         evm::log(Transfer {
             from: Address::ZERO,
-            to: to,
-            amount: amount,
+            to,
+            amount,
         });
     }
 
@@ -102,9 +121,9 @@ impl<T: ERC20Params> ERC20<T> {
         self.total_supply.set(self.total_supply.get() - amount);
 
         evm::log(Transfer {
-            from: from,
+            from,
             to: Address::ZERO,
-            amount: amount,
+            amount,
         });
     }
 }
@@ -209,7 +228,7 @@ impl<T: ERC20Params> ERC20<T> {
         let nonce = nonce_setter.get();
         nonce_setter.set(nonce + U256::from(1));
 
-        let mut struct_hash = [0u8; 32 + 32];
+        let mut struct_hash = [0u8; 192];
         struct_hash[0..32].copy_from_slice(&crypto::keccak(b"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")[..]);
         struct_hash[32..64].copy_from_slice(&owner[..]);
         struct_hash[64..96].copy_from_slice(&spender[..]);
@@ -256,7 +275,7 @@ impl<T: ERC20Params> ERC20<T> {
 
     pub fn domain_separator(&mut self) -> Result<B256> {
         if block::chainid() == T::INITIAL_CHAIN_ID {
-            Ok(T::INITIAL_DOMAIN_SEPARATOR.into())
+            Ok(T::INITIAL_DOMAIN_SEPARATOR)
         } else {
             Ok(ERC20::<T>::compute_domain_separator()?)
         }

@@ -8,11 +8,28 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloc::{string::String, vec::Vec};
-use alloy_primitives::{Address, U256};
-use alloy_sol_types::{sol, SolError};
-use core::{borrow::BorrowMut, marker::PhantomData};
-use stylus_sdk::{abi::Bytes, evm, msg, prelude::*};
+use alloc::{
+    string::String,
+    vec::Vec,
+};
+use alloy_primitives::{
+    Address,
+    U256,
+};
+use alloy_sol_types::{
+    sol,
+    SolError,
+};
+use core::{
+    borrow::BorrowMut,
+    marker::PhantomData,
+};
+use stylus_sdk::{
+    abi::Bytes,
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait ERC721Params {
     const NAME: &'static str;
@@ -135,8 +152,8 @@ impl<T: ERC721Params> ERC721<T> {
 
         evm::log(Transfer {
             from: Address::ZERO,
-            to: to,
-            id: id,
+            to,
+            id,
         });
 
         Ok(())
@@ -160,7 +177,7 @@ impl<T: ERC721Params> ERC721<T> {
         evm::log(Transfer {
             from: owner,
             to: Address::ZERO,
-            id: id,
+            id,
         });
 
         Ok(())
@@ -244,11 +261,7 @@ impl<T: ERC721Params> ERC721<T> {
 
         self.get_approved.setter(id).set(spender);
 
-        evm::log(Approval {
-            owner: owner,
-            spender: spender,
-            id: id,
-        });
+        evm::log(Approval { owner, spender, id });
 
         Ok(())
     }
@@ -260,8 +273,8 @@ impl<T: ERC721Params> ERC721<T> {
 
         evm::log(ApprovalForAll {
             owner: msg::sender(),
-            operator: operator,
-            approved: approved,
+            operator,
+            approved,
         });
 
         Ok(())
@@ -295,11 +308,7 @@ impl<T: ERC721Params> ERC721<T> {
 
         self.get_approved.delete(id);
 
-        evm::log(Transfer {
-            from: from,
-            to: to,
-            id: id,
-        });
+        evm::log(Transfer { from, to, id });
 
         Ok(())
     }

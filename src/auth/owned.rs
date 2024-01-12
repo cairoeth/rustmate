@@ -7,9 +7,16 @@
 
 use alloc::vec::Vec;
 use alloy_primitives::Address;
-use alloy_sol_types::{sol, SolError};
+use alloy_sol_types::{
+    sol,
+    SolError,
+};
 use core::marker::PhantomData;
-use stylus_sdk::{evm, msg, prelude::*};
+use stylus_sdk::{
+    evm,
+    msg,
+    prelude::*,
+};
 
 pub trait OwnedParams {}
 

@@ -6,14 +6,26 @@
 //! Note that this code is unaudited and not fit for production use.
 
 use alloc::vec::Vec;
-use alloy_primitives::{Address, B256, U256};
-use alloy_sol_types::{sol, sol_data, SolError, SolType};
+use alloy_primitives::{
+    Address,
+    B256,
+    U256,
+};
+use alloy_sol_types::{
+    sol,
+    sol_data,
+    SolError,
+    SolType,
+};
 use core::marker::PhantomData;
 use stylus_sdk::call::RawCall;
 use stylus_sdk::contract;
 use stylus_sdk::crypto;
 use stylus_sdk::deploy::RawDeploy;
-use stylus_sdk::{evm, prelude::*};
+use stylus_sdk::{
+    evm,
+    prelude::*,
+};
 
 const KECCAK256_PROXY_CHILD_BYTECODE: [u8; 32] = [
     33, 195, 93, 190, 27, 52, 74, 36, 136, 207, 51, 33, 214, 206, 84, 47, 142, 159, 48, 85, 68,
@@ -63,14 +75,14 @@ impl<T: CREATE3Params> CREATE3<T> {
                 .map(|ret| sol_data::Address::decode_single(ret.as_slice(), false).unwrap())
                 .map_err(|_| CREATE3Error::InitilizationFailed(InitilizationFailed {}))?;
 
-            return Ok(deployed);
+            Ok(deployed)
         } else {
-            return Err(CREATE3Error::DeploymentFailed(DeploymentFailed {}));
+            Err(CREATE3Error::DeploymentFailed(DeploymentFailed {}))
         }
     }
 
     pub fn get_deployed(salt: B256) -> Result<Address> {
-        return Ok(Self::get_deployed_with_creator(salt, contract::address())?);
+        Self::get_deployed_with_creator(salt, contract::address())
     }
 
     pub fn get_deployed_with_creator(salt: B256, creator: Address) -> Result<Address> {
@@ -80,7 +92,7 @@ impl<T: CREATE3Params> CREATE3<T> {
         proxy_packed[21..53].copy_from_slice(&salt[..]);
         proxy_packed[53..85].copy_from_slice(&KECCAK256_PROXY_CHILD_BYTECODE[..]);
 
-        let proxy = Address::from_word(crypto::keccak(&proxy_packed));
+        let proxy = Address::from_word(crypto::keccak(proxy_packed));
 
         let mut packed = [0u8; 1 + 1 + 20 + 1];
         packed[0] = 0xd6;
@@ -88,7 +100,7 @@ impl<T: CREATE3Params> CREATE3<T> {
         packed[2..22].copy_from_slice(&proxy[..]);
         packed[22] = 0x01;
 
-        return Ok(Address::from_word(crypto::keccak(&packed)));
+        Ok(Address::from_word(crypto::keccak(packed)))
     }
 }
 

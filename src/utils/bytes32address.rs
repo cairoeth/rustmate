@@ -5,7 +5,10 @@
 //!
 //! Note that this code is unaudited and not fit for production use.
 
-use alloy_primitives::{Address, FixedBytes};
+use alloy_primitives::{
+    Address,
+    FixedBytes,
+};
 use core::marker::PhantomData;
 use stylus_sdk::prelude::*;
 
